@@ -1,20 +1,23 @@
-import { generateImage, createGateway } from 'ai'
+import { experimental_generateImage as generateImage } from 'ai'
 import { NextResponse } from 'next/server'
 import { buildSafePrompt, validateCharacterRequest, type CharacterRequest } from '@/lib/character-safety'
 
 export const runtime = 'nodejs'
 
-const gateway = createGateway()
-
 export async function POST(request: Request) {
   try {
     const input = (await request.json()) as CharacterRequest
     const validation = validateCharacterRequest(input)
-    if (!validation.valid) return NextResponse.json({ errors: validation.errors }, { status: 400 })
+
+    if (!validation.valid) {
+      return NextResponse.json({ errors: validation.errors }, { status: 400 })
+    }
 
     const prompt = buildSafePrompt(input)
+    const model = process.env.IMAGE_MODEL || 'openai/gpt-image-1.5'
+
     const result = await generateImage({
-      model: gateway.imageModel(process.env.IMAGE_MODEL || 'openai/gpt-image-1.5'),
+      model,
       prompt,
       size: '1024x1024',
     })
@@ -24,7 +27,16 @@ export async function POST(request: Request) {
       image: `data:${result.image.mediaType};base64,${result.image.base64}`,
     })
   } catch (error) {
-    console.error('[v0] Image generation failed:', error)
-    return NextResponse.json({ error: 'Unable to generate this character right now.' }, { status: 500 })
+    console.error('[Character Creation] Image generation failed:', error)
+
+    const message = error instanceof Error ? error.message : 'Unknown image generation error'
+    return NextResponse.json(
+      {
+        error: process.env.NODE_ENV === 'development'
+          ? `Image generation failed: ${message}`
+          : 'Unable to generate this character right now. Check the Vercel function logs for the underlying error.',
+      },
+      { status: 500 },
+    )
   }
 }
