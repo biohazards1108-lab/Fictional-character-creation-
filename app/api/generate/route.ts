@@ -1,4 +1,4 @@
-import { experimental_generateImage as generateImage } from 'ai'
+import { generateImage } from 'ai'
 import { NextResponse } from 'next/server'
 import { buildSafePrompt, validateCharacterRequest, type CharacterRequest } from '@/lib/character-safety'
 
