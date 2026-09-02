@@ -16,6 +16,9 @@ export type CharacterRequest = {
   lighting?: string
   camera?: string
   artStyle?: string
+  bodyType?: string
+  bodyDetails?: string
+  mood?: string
 }
 
 // Hard site boundary: fictional adults only. No minors/childlike characters,
@@ -48,7 +51,7 @@ export function buildSafePrompt(input: CharacterRequest) {
 
   const modeLine = input.mode === 'adult'
     ? input.adultSubmode === 'sexual'
-      ? 'adult fictional character, sensual and non-graphic styling, fully clothed, no nudity'
+      ? 'adult fictional character, sensual glamour styling, tasteful and non-graphic, fully clothed, no nudity'
       : 'adult fictional character, non-sexual styling, fully clothed, no nudity'
     : 'fictional adult character, non-sexual styling, fully clothed, no nudity'
 
@@ -57,8 +60,11 @@ export function buildSafePrompt(input: CharacterRequest) {
     `${result.normalizedAge}-year-old ${input.species || 'fantasy character'}`,
     input.personality,
     input.appearance,
+    input.bodyType,
+    input.bodyDetails,
     input.clothing,
     input.pose,
+    input.mood,
     input.environment,
     input.lighting,
     input.camera,
