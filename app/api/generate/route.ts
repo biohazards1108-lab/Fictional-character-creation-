@@ -14,7 +14,9 @@ export async function POST(request: Request) {
     }
 
     const prompt = buildSafePrompt(input)
-    const model = process.env.IMAGE_MODEL || 'openai/gpt-image-1.5'
+    // Recraft V4.1 is available through Vercel AI Gateway's $5 monthly
+    // free-credit allowance and is a better fit for character artwork.
+    const model = process.env.IMAGE_MODEL || 'recraft/recraft-v4.1'
 
     const result = await generateImage({
       model,
