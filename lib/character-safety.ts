@@ -18,16 +18,26 @@ export type CharacterRequest = {
   artStyle?: string
 }
 
-const blocked = /child|kid|minor|young-looking|teen|underage|loli|shota|sexual intercourse|explicit sex|graphic sex|penetration|full nudity|fully nude|completely nude|topless|bottomless|genitals|porn|celebrity|real person|public figure|deepfake/i
+// Hard site boundary: fictional adults only. No minors/childlike characters,
+// real people, celebrity likenesses, or graphic sexual content/nudity.
+const blocked = /\b(?:child|children|kid|kids|minor|minor-aged|underage|under-aged|teen|teenager|adolescent|preteen|pre-teen|young-looking|childlike|child-like|loli|shota|schoolgirl|schoolboy|celebrity|real person|real-person|public figure|famous person|famous people|lookalike|likeness of|deepfake)\b|sexual intercourse|explicit sex|graphic sex|graphic sexual|penetration|full nudity|fully nude|completely nude|topless|bottomless|genitals|porn(?:ography)?/i
 
 export function validateCharacterRequest(input: CharacterRequest) {
   const age = Number(input.age)
   const text = Object.values(input).join(' ')
   const errors: string[] = []
 
-  if (!Number.isFinite(age) || age < 1 || age > 10_000) errors.push('Enter a valid character age.')
-  if (input.mode === 'adult' && age < 18) errors.push('Sensual / Adult mode requires an explicitly adult character aged 18 or older.')
-  if (blocked.test(text)) errors.push('This request includes unsupported content. Characters must be fictional, adult when required, non-graphic, and never nude.')
+  if (!Number.isFinite(age) || age < 18 || age > 10_000) {
+    errors.push('Characters must be explicitly fictional adults aged 18 or older. Minors are not allowed.')
+  }
+
+  if (blocked.test(text)) {
+    errors.push('This request includes unsupported content. Only fictional adult characters are allowed; real-person likenesses, minors, graphic sexual content, and nudity are not permitted.')
+  }
+
+  if (input.mode === 'adult' && age < 18) {
+    errors.push('18+ / Adult mode requires an explicitly adult character aged 18 or older.')
+  }
 
   return { valid: errors.length === 0, errors, normalizedAge: age }
 }
@@ -40,7 +50,7 @@ export function buildSafePrompt(input: CharacterRequest) {
     ? input.adultSubmode === 'sexual'
       ? 'adult fictional character, sensual and non-graphic styling, fully clothed, no nudity'
       : 'adult fictional character, non-sexual styling, fully clothed, no nudity'
-    : 'fictional character, non-sexual styling, fully clothed, no nudity'
+    : 'fictional adult character, non-sexual styling, fully clothed, no nudity'
 
   return [
     input.name || 'Unnamed character',
@@ -55,6 +65,6 @@ export function buildSafePrompt(input: CharacterRequest) {
     input.artStyle,
     input.customPrompt,
     modeLine,
-    'high quality character art, preserve defining facial features and identity, fictional only, no real-person likeness, no sexual activity, no graphic sexual content, no nudity',
+    'high quality character art, fictional adult only, no minors or childlike characters, no real-person likeness, no celebrity likeness, no sexual activity, no graphic sexual content, no nudity',
   ].filter(Boolean).join(', ')
 }
