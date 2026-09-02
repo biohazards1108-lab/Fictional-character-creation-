@@ -4,6 +4,10 @@ import { buildSafePrompt, validateCharacterRequest, type CharacterRequest } from
 
 export const runtime = 'nodejs'
 
+// Deliberately fixed so a stale/old IMAGE_MODEL environment variable cannot
+// silently route the app back to a restricted model such as OpenAI GPT Image.
+const IMAGE_MODEL = 'recraft/recraft-v4.1'
+
 export async function POST(request: Request) {
   try {
     const input = (await request.json()) as CharacterRequest
@@ -14,12 +18,9 @@ export async function POST(request: Request) {
     }
 
     const prompt = buildSafePrompt(input)
-    // Recraft V4.1 is available through Vercel AI Gateway's $5 monthly
-    // free-credit allowance and is a better fit for character artwork.
-    const model = process.env.IMAGE_MODEL || 'recraft/recraft-v4.1'
 
     const result = await generateImage({
-      model,
+      model: IMAGE_MODEL,
       prompt,
       size: '1024x1024',
     })
