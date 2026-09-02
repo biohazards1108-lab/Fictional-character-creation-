@@ -1,5 +1,6 @@
 'use client'
 
+import './prompt-studio.css'
 import { useState } from 'react'
 import { Download, ImagePlus, Loader2, Sparkles, ShieldCheck } from 'lucide-react'
 
